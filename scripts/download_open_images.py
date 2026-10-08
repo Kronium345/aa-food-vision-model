@@ -20,6 +20,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from fridgevision.classes import REPO_ROOT, load_catalog  # noqa: E402
 
 
+def _open_images_ids(ds) -> list[str]:
+    """Open Images ids of the samples in a zoo dataset.
+
+    Some FiftyOne versions store them in an `open_images_id` field, others don't,
+    but the zoo always saves each image as `<image id>.jpg`, so fall back to that.
+    """
+    if ds.has_field("open_images_id"):
+        return [i for i in ds.values("open_images_id") if i]
+    return [Path(p).stem for p in ds.values("filepath")]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "data/raw/openimages")
@@ -67,9 +78,9 @@ def main() -> int:
                 seed=51,
                 num_workers=args.workers,
                 dataset_name=f"fridge-oi-{split}-{oi_name}",
-                overwrite=True,
+                drop_existing_dataset=True,
             )
-            image_ids.update(ds.values("open_images_id"))
+            image_ids.update(_open_images_ids(ds))
             ds.delete()
         print(f"[{split}] {len(image_ids)} unique images")
         if not image_ids:
@@ -84,7 +95,9 @@ def main() -> int:
             only_matching=True,
             num_workers=args.workers,
             dataset_name=f"fridge-oi-{split}",
-            overwrite=True,
+            # Replace the FiftyOne dataset entry but keep the downloaded files;
+            # overwrite=True would re-download the split (incl. a ~1 GB CSV) each call.
+            drop_existing_dataset=True,
         )
         full = full.map_labels("ground_truth", oi_to_ours)
         view = full.filter_labels("ground_truth", F("label").is_in(ours), only_matches=True)
