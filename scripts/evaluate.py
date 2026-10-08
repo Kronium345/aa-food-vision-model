@@ -12,6 +12,14 @@ runs. Measure real latency on an iPhone 12 / mid-range Android in the dev build.
 
 from __future__ import annotations
 
+import os
+
+# MediaPipe imports matplotlib at start-up. Colab exports
+# MPLBACKEND=module://matplotlib_inline..., which this separate Python 3.11
+# environment doesn't have, so importing MediaPipe would crash. Nothing here
+# draws, so use the headless backend.
+os.environ["MPLBACKEND"] = "Agg"
+
 import argparse
 import json
 import statistics

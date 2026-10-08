@@ -14,6 +14,14 @@ into <app>/assets/models/. Tag the model repo afterwards:
 
 from __future__ import annotations
 
+import os
+
+# MediaPipe imports matplotlib at start-up. Colab exports
+# MPLBACKEND=module://matplotlib_inline..., which this separate Python 3.11
+# environment doesn't have, so importing MediaPipe would crash. Nothing here
+# draws, so use the headless backend.
+os.environ["MPLBACKEND"] = "Agg"
+
 import argparse
 import json
 import shutil
@@ -121,8 +129,7 @@ def main() -> int:
         shutil.copy2(args.exports / labels_name, models_dir / labels_name)
         shutil.copy2(args.exports / anchors_name, models_dir / anchors_name)
         print(f"Copied to {models_dir}")
-        print("Then in the app: import the new labels file in lib/fridgeScan/catalog.ts and set
-"
+        print("Then in the app: import the new labels file in lib/fridgeScan/catalog.ts and set\n"
               "ACTIVE_DETECTOR = releasedDetector(require(...tflite), require(...bin)) in modelConfig.ts")
     print(f"\nNext: git tag model-v{args.version} && git push --tags")
     return 0
