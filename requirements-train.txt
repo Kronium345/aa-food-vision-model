@@ -1,0 +1,12 @@
+# Training + evaluation (Linux / Colab only, Python 3.11).
+# mediapipe-model-maker 0.2.1.4 requires tensorflow<2.16, so the TF stack is pinned to 2.15.
+-r requirements.txt
+mediapipe-model-maker==0.2.1.4
+mediapipe==0.10.14
+tensorflow==2.15.1
+tf-models-official==2.15.0
+tensorflow-text==2.15.0
+tensorflow-addons==0.23.0
+tensorflow-model-optimization==0.7.5
+tensorflow-hub==0.16.1
+numpy<2

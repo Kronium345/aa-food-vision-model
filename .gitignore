@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Large artefacts: keep out of git (use Git LFS or a bucket for data if needed)
+data/*
+!data/.gitkeep
+runs/*
+!runs/.gitkeep
+exports/*
+!exports/.gitkeep

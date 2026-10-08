@@ -1,0 +1,533 @@
+# Source of truth for the fridge detector's classes, the app's pantry categories
+# and the OCR keyword dictionary. Everything in exports/fridge-labels-vN.json is
+# generated from this file (scripts/export_labels.py).
+#
+# detect:
+#   visual - the detector learns it (gets a model class index)
+#   both   - the detector learns it AND OCR can name it (e.g. milk carton vs cream carton)
+#   ocr    - no visual class; it only shows up when its label text is read (yogurt, ketchup...)
+#
+# Detector class indices follow the order of visual/both entries below (1-based;
+# index 0 is MediaPipe's implicit "background"). NEVER reorder or delete a released
+# class; append new ones and bump `version`, or old app builds will mislabel boxes.
+#
+# aliases:   extra dataset label names that map onto this class (Roboflow / CVAT exports).
+# open_images: Open Images V7 class names to pull boxes for (checked against the
+#              real class list by scripts/download_open_images.py).
+# ocr:       label keywords per language. Matching is case/accent-insensitive, on
+#            whole words, longest phrase wins ("cream cheese" beats "cream").
+
+version: 1
+
+categories:
+  dairy_eggs: Dairy & eggs
+  meat_fish: Meat, fish & protein
+  fruits: Fruits
+  vegetables: Vegetables
+  sauces: Sauces & condiments
+  bakery: Bread & bakery
+  drinks: Drinks
+  other: Other
+
+# Phrases that consume OCR text without producing an ingredient, so that
+# "milk chocolate" doesn't add milk and "peanut butter" doesn't add butter.
+ocr_ignore:
+  - milk chocolate
+  - chocolat au lait
+  - chocolate con leche
+  - coconut milk
+  - lait de coco
+  - leche de coco
+  - oat milk
+  - almond milk
+  - soy milk
+  - buttermilk
+  - butter beans
+  - butternut
+  - cream crackers
+  - ice cream
+  - glace
+  - helado
+  - best before
+  - use by
+  - keep refrigerated
+
+classes:
+  # ---------------------------------------------------------------- dairy & eggs
+  - name: egg
+    display: Eggs
+    category: dairy_eggs
+    detect: both
+    aliases: [eggs, egg_carton]
+    open_images: [Egg (Food)]
+    ocr:
+      en: [egg, eggs, free range eggs]
+      fr: [oeuf, oeufs]
+      es: [huevo, huevos]
+  - name: milk
+    display: Milk
+    category: dairy_eggs
+    detect: both
+    aliases: [milk_carton, milk_bottle]
+    open_images: [Milk]
+    ocr:
+      en: [milk, whole milk, semi skimmed, skimmed milk, skim milk]
+      fr: [lait, lait demi ecreme, lait entier, lait ecreme]
+      es: [leche, leche entera, leche semidesnatada, leche desnatada]
+  - name: cheese
+    display: Cheese
+    category: dairy_eggs
+    detect: both
+    aliases: [cheese_block]
+    open_images: [Cheese]
+    ocr:
+      en: [cheese, cheddar, mozzarella, parmesan, feta, halloumi, gouda, brie]
+      fr: [fromage, emmental, comte, chevre]
+      es: [queso, manchego]
+  - name: butter
+    display: Butter
+    category: dairy_eggs
+    detect: both
+    ocr:
+      en: [butter, salted butter, unsalted butter]
+      fr: [beurre, beurre doux, beurre demi sel]
+      es: [mantequilla]
+  - name: yogurt
+    display: Yogurt
+    category: dairy_eggs
+    detect: ocr
+    ocr:
+      en: [yogurt, yoghurt, greek yogurt, greek style yoghurt, skyr]
+      fr: [yaourt, yogourt, fromage blanc]
+      es: [yogur, yogurt griego]
+  - name: cream
+    display: Cream
+    category: dairy_eggs
+    detect: ocr
+    ocr:
+      en: [cream, double cream, single cream, whipping cream, heavy cream]
+      fr: [creme, creme liquide, creme entiere]
+      es: [nata, nata para montar, crema de leche]
+  - name: sour_cream
+    display: Sour cream / crème fraîche
+    category: dairy_eggs
+    detect: ocr
+    ocr:
+      en: [sour cream, creme fraiche]
+      fr: [creme fraiche, creme epaisse]
+      es: [crema agria, nata agria]
+  - name: cream_cheese
+    display: Cream cheese
+    category: dairy_eggs
+    detect: ocr
+    ocr:
+      en: [cream cheese, soft cheese]
+      fr: [fromage a tartiner, fromage frais]
+      es: [queso crema, queso para untar]
+  - name: cottage_cheese
+    display: Cottage cheese
+    category: dairy_eggs
+    detect: ocr
+    ocr:
+      en: [cottage cheese]
+      fr: [cottage cheese, fromage cottage]
+      es: [requeson, queso cottage]
+
+  # ---------------------------------------------------------- meat, fish, protein
+  - name: chicken
+    display: Chicken
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [chicken, chicken breast, chicken breasts, chicken thighs]
+      fr: [poulet, blanc de poulet, filet de poulet]
+      es: [pollo, pechuga de pollo]
+  - name: beef_mince
+    display: Beef mince
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [beef mince, minced beef, ground beef, steak mince]
+      fr: [boeuf hache, viande hachee]
+      es: [carne picada, carne molida]
+  - name: bacon
+    display: Bacon
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [bacon, streaky bacon, back bacon]
+      fr: [lardons, bacon]
+      es: [bacon, beicon, panceta]
+  - name: ham
+    display: Ham
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [ham, cooked ham]
+      fr: [jambon]
+      es: [jamon, jamon cocido]
+  - name: sausage
+    display: Sausages
+    category: meat_fish
+    detect: both
+    aliases: [sausages]
+    ocr:
+      en: [sausage, sausages, chorizo]
+      fr: [saucisse, saucisses, chorizo]
+      es: [salchicha, salchichas, chorizo]
+  - name: salmon
+    display: Salmon
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [salmon, smoked salmon, salmon fillets]
+      fr: [saumon, saumon fume]
+      es: [salmon, salmon ahumado]
+  - name: tuna
+    display: Tuna
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [tuna, tuna chunks]
+      fr: [thon]
+      es: [atun]
+  - name: tofu
+    display: Tofu
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [tofu, firm tofu, silken tofu]
+      fr: [tofu]
+      es: [tofu]
+  - name: hummus
+    display: Hummus
+    category: meat_fish
+    detect: ocr
+    ocr:
+      en: [hummus, houmous]
+      fr: [houmous]
+      es: [hummus]
+
+  # ---------------------------------------------------------------------- fruits
+  - name: apple
+    display: Apple
+    category: fruits
+    detect: visual
+    aliases: [apples, green_apple, red_apple]
+    open_images: [Apple]
+  - name: banana
+    display: Banana
+    category: fruits
+    detect: visual
+    aliases: [bananas]
+    open_images: [Banana]
+  - name: orange
+    display: Orange
+    category: fruits
+    detect: visual
+    aliases: [oranges, mandarin, clementine, tangerine]
+    open_images: [Orange]
+  - name: lemon
+    display: Lemon
+    category: fruits
+    detect: visual
+    aliases: [lemons]
+    open_images: [Lemon]
+  - name: lime
+    display: Lime
+    category: fruits
+    detect: visual
+    aliases: [limes]
+  - name: grapefruit
+    display: Grapefruit
+    category: fruits
+    detect: visual
+    open_images: [Grapefruit]
+  - name: avocado
+    display: Avocado
+    category: fruits
+    detect: visual
+    aliases: [avocados]
+  - name: pear
+    display: Pear
+    category: fruits
+    detect: visual
+    aliases: [pears]
+    open_images: [Pear]
+  - name: peach
+    display: Peach
+    category: fruits
+    detect: visual
+    aliases: [peaches, nectarine]
+    open_images: [Peach]
+  - name: plum
+    display: Plum
+    category: fruits
+    detect: visual
+    aliases: [plums]
+  - name: grapes
+    display: Grapes
+    category: fruits
+    detect: visual
+    aliases: [grape]
+    open_images: [Grape]
+  - name: strawberry
+    display: Strawberries
+    category: fruits
+    detect: visual
+    aliases: [strawberries]
+    open_images: [Strawberry]
+  - name: blueberry
+    display: Blueberries
+    category: fruits
+    detect: visual
+    aliases: [blueberries]
+  - name: raspberry
+    display: Raspberries
+    category: fruits
+    detect: visual
+    aliases: [raspberries]
+  - name: mango
+    display: Mango
+    category: fruits
+    detect: visual
+    open_images: [Mango]
+  - name: pineapple
+    display: Pineapple
+    category: fruits
+    detect: visual
+    open_images: [Pineapple]
+  - name: watermelon
+    display: Watermelon
+    category: fruits
+    detect: visual
+    open_images: [Watermelon]
+  - name: kiwi
+    display: Kiwi
+    category: fruits
+    detect: visual
+    aliases: [kiwifruit, kiwi_fruit]
+  - name: pomegranate
+    display: Pomegranate
+    category: fruits
+    detect: visual
+    open_images: [Pomegranate]
+
+  # ------------------------------------------------------------------ vegetables
+  - name: tomato
+    display: Tomatoes
+    category: vegetables
+    detect: visual
+    aliases: [tomatoes, cherry_tomato, cherry_tomatoes]
+    open_images: [Tomato]
+  - name: bell_pepper
+    display: Bell pepper
+    category: vegetables
+    detect: visual
+    aliases: [pepper, peppers, capsicum, red_pepper, green_pepper, yellow_pepper]
+    open_images: [Bell pepper]
+  - name: chili
+    display: Chilli
+    category: vegetables
+    detect: visual
+    aliases: [chilli, chili_pepper, jalapeno]
+  - name: carrot
+    display: Carrots
+    category: vegetables
+    detect: visual
+    aliases: [carrots]
+    open_images: [Carrot]
+  - name: broccoli
+    display: Broccoli
+    category: vegetables
+    detect: visual
+    open_images: [Broccoli]
+  - name: cauliflower
+    display: Cauliflower
+    category: vegetables
+    detect: visual
+  - name: cucumber
+    display: Cucumber
+    category: vegetables
+    detect: visual
+    aliases: [cucumbers]
+    open_images: [Cucumber]
+  - name: zucchini
+    display: Courgette
+    category: vegetables
+    detect: visual
+    aliases: [courgette, courgettes]
+    open_images: [Zucchini]
+  - name: aubergine
+    display: Aubergine
+    category: vegetables
+    detect: visual
+    aliases: [eggplant]
+  - name: lettuce
+    display: Lettuce
+    category: vegetables
+    detect: visual
+    aliases: [romaine, iceberg]
+  - name: spinach
+    display: Spinach
+    category: vegetables
+    detect: both
+    ocr:
+      en: [spinach, baby spinach]
+      fr: [epinards]
+      es: [espinacas]
+  - name: cabbage
+    display: Cabbage
+    category: vegetables
+    detect: visual
+    open_images: [Cabbage]
+  - name: onion
+    display: Onion
+    category: vegetables
+    detect: visual
+    aliases: [onions, red_onion]
+  - name: spring_onion
+    display: Spring onions
+    category: vegetables
+    detect: visual
+    aliases: [spring_onions, scallion, green_onion]
+  - name: garlic
+    display: Garlic
+    category: vegetables
+    detect: visual
+  - name: ginger
+    display: Ginger
+    category: vegetables
+    detect: visual
+  - name: potato
+    display: Potatoes
+    category: vegetables
+    detect: visual
+    aliases: [potatoes]
+    open_images: [Potato]
+  - name: sweet_potato
+    display: Sweet potato
+    category: vegetables
+    detect: visual
+    aliases: [sweet_potatoes]
+  - name: mushroom
+    display: Mushrooms
+    category: vegetables
+    detect: visual
+    aliases: [mushrooms]
+    open_images: [Mushroom]
+  - name: celery
+    display: Celery
+    category: vegetables
+    detect: visual
+  - name: asparagus
+    display: Asparagus
+    category: vegetables
+    detect: visual
+    open_images: [Garden Asparagus]
+  - name: brussels_sprouts
+    display: Brussels sprouts
+    category: vegetables
+    detect: visual
+    aliases: [brussels_sprout, brussel_sprouts]
+  - name: green_beans
+    display: Green beans
+    category: vegetables
+    detect: visual
+    aliases: [green_bean, runner_beans]
+  - name: corn
+    display: Sweetcorn
+    category: vegetables
+    detect: visual
+    aliases: [sweetcorn, corn_on_the_cob]
+  - name: radish
+    display: Radish
+    category: vegetables
+    detect: visual
+    aliases: [radishes]
+    open_images: [Radish]
+
+  # ---------------------------------------------------------- sauces & condiments
+  - name: ketchup
+    display: Ketchup
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [ketchup, tomato ketchup]
+      fr: [ketchup]
+      es: [ketchup, catsup]
+  - name: mayonnaise
+    display: Mayonnaise
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [mayonnaise, mayo]
+      fr: [mayonnaise]
+      es: [mayonesa]
+  - name: mustard
+    display: Mustard
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [mustard, dijon mustard]
+      fr: [moutarde, moutarde de dijon]
+      es: [mostaza]
+  - name: soy_sauce
+    display: Soy sauce
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [soy sauce, soya sauce]
+      fr: [sauce soja]
+      es: [salsa de soja]
+  - name: hot_sauce
+    display: Hot sauce
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [hot sauce, sriracha, chilli sauce, chili sauce]
+      fr: [sauce piquante]
+      es: [salsa picante]
+  - name: pesto
+    display: Pesto
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [pesto]
+      fr: [pesto]
+      es: [pesto]
+  - name: jam
+    display: Jam
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [jam, preserve, marmalade]
+      fr: [confiture]
+      es: [mermelada]
+  - name: peanut_butter
+    display: Peanut butter
+    category: sauces
+    detect: ocr
+    ocr:
+      en: [peanut butter]
+      fr: [beurre de cacahuete, beurre de cacahuetes]
+      es: [crema de cacahuete, mantequilla de mani]
+
+  # ------------------------------------------------------------ bakery & drinks
+  - name: bread
+    display: Bread
+    category: bakery
+    detect: both
+    open_images: [Bread]
+    ocr:
+      en: [bread, wholemeal, sourdough, tortilla wraps]
+      fr: [pain, pain de mie]
+      es: [pan, pan de molde]
+  - name: orange_juice
+    display: Orange juice
+    category: drinks
+    detect: ocr
+    ocr:
+      en: [orange juice]
+      fr: [jus d orange]
+      es: [zumo de naranja, jugo de naranja]

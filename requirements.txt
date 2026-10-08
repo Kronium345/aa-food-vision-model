@@ -1,0 +1,3 @@
+# Core tooling: classes, dataset building, metrics, label export. Pure Python, any OS.
+PyYAML>=6.0
+Pillow>=10.0

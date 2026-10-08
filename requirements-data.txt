@@ -1,0 +1,4 @@
+# Dataset download tools (FiftyOne for Open Images, Roboflow for Universe datasets).
+-r requirements.txt
+fiftyone>=1.0
+roboflow>=1.1

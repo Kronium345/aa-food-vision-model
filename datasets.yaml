@@ -1,0 +1,56 @@
+# Sources merged by scripts/build_dataset.py. Paths are relative to this file.
+# Every source must be COCO format (FiftyOne, Roboflow "COCO JSON", CVAT "COCO 1.0"
+# and Label Studio "COCO" exports all work).
+#
+# role: train  -> split into train/validation
+# role: test   -> held-out test set only. Use YOUR OWN real-fridge photos here and
+#                 never train on them; the Phase 1 exit criterion (mAP@0.5 >= 0.6)
+#                 is measured on this split.
+#
+# label_map: per-source label fixes. `source label: our class`, or `label: null` to drop.
+# Labels already matching a class name / alias / open_images name need no entry.
+
+# Licences that allow shipping a model trained on the data in a commercial app.
+# Only add to this list after reading the licence. (Open Images boxes: CC BY 4.0;
+# the images themselves are listed as CC BY 2.0 by Flickr.)
+allowed_licences:
+  - CC BY 4.0
+  - CC BY 2.0
+  - CC0 1.0
+  - Public Domain
+  - Apache-2.0
+  - MIT
+  - own            # photos we took ourselves
+
+validation_fraction: 0.1
+
+sources:
+  # Created by: python scripts/download_open_images.py
+  - name: openimages
+    path: data/raw/openimages
+    licence: CC BY 4.0
+    url: https://storage.googleapis.com/openimages/web/index.html
+
+  # Example Roboflow Universe source, created by scripts/import_roboflow.py.
+  # Copy the licence EXACTLY as shown on the dataset page.
+  - name: rf_fridge_example
+    enabled: false
+    path: data/raw/roboflow/fridge-example
+    licence: CC BY 4.0
+    url: https://universe.roboflow.com/<workspace>/<project>
+    label_map:
+      Tomatoes: tomato
+      food: null
+
+  # Our own photos taken inside real fridges, labelled in CVAT / Label Studio.
+  - name: own_fridge_batch1
+    enabled: false
+    path: data/raw/own/batch1
+    licence: own
+
+  # Held-out real-fridge test set. Never set role: train on this.
+  - name: own_fridge_test
+    enabled: false
+    path: data/raw/own/test
+    licence: own
+    role: test
