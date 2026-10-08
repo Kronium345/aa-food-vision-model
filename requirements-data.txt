@@ -2,3 +2,4 @@
 -r requirements.txt
 fiftyone>=1.0
 roboflow>=1.1
+pandas>=2.0  # select_image_ids in download_open_images.py (FiftyOne already depends on it)
