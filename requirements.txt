@@ -1,3 +1,4 @@
 # Core tooling: classes, dataset building, metrics, label export. Pure Python, any OS.
 PyYAML>=6.0
 Pillow>=10.0
+numpy>=1.24  # ssd_decoding.py; the training lock pins numpy<2

@@ -5,12 +5,13 @@ on-device ingredient detector plus the label / OCR dictionary the Expo app ships
 alongside it.
 
 **This repo is never deployed.** Detection and OCR run on the phone, and frames
-never leave the device. The only output is two files per release, which get
+never leave the device. The only output is three files per release, which get
 copied into the app repo's `assets/models/`:
 
 ```
 exports/fridge-detector-vN.tflite   # MediaPipe object detector with metadata (labels, anchors)
-exports/fridge-labels-vN.json       # label order, display names, pantry categories, OCR dictionary
+exports/fridge-labels-vN.json       # label order, decoding params, display names, categories, OCR dictionary
+exports/fridge-anchors-vN.bin       # SSD anchors (float32 LE: x_center, y_center, w, h per anchor)
 ```
 
 There's no Render service and no URL to give the app. The only server-side part
@@ -24,7 +25,7 @@ running the pipeline on Windows.
 ```
 classes.yaml        source of truth: detector classes, pantry categories, OCR keywords (EN/FR/ES)
 datasets.yaml       dataset sources + licence allowlist + held-out test set
-fridgevision/       library code (validation, dataset merge, mAP, OCR matcher, label export)
+fridgevision/       library code (validation, dataset merge, mAP, OCR matcher, label export, SSD decoding export)
 scripts/
   export_labels.py        validate classes.yaml, write a dev labels file (no model needed)
   download_open_images.py pull Open Images V7 boxes via FiftyOne
@@ -32,7 +33,7 @@ scripts/
   build_dataset.py        merge sources -> data/processed/vN (Model Maker COCO layout)
   train.py                MediaPipe Model Maker training -> fp32 / fp16 / int8 .tflite
   evaluate.py             mAP@0.5 on real-fridge test photos + Phase 1 exit criteria
-  release.py              checks + versioned export (+ optional copy into the app repo)
+  release.py              checks + versioned export: model, labels, anchors (+ optional copy into the app repo)
 notebooks/train_colab.ipynb   GPU training on Colab
 tests/              pytest suite for everything that doesn't need TensorFlow
 ```
@@ -124,19 +125,21 @@ labels match `classes.yaml` exactly, and refuse to continue if they don't.
 ## App integration contract
 
 **Runtime.** Model Maker exports the raw SSD outputs (box encodings + scores for
-every anchor). Anchor decoding and NMS are described in the model's metadata and
-carried out by **MediaPipe Tasks' `ObjectDetector`**. `evaluate.py` uses the same
-path, so its numbers are what the app will see. This affects the plan's Phase 0
-decision:
+every anchor). MediaPipe Tasks normally decodes them using the DETECTOR_METADATA
+block packed into the model. The app (Phase 0 chose the
+**`react-native-fast-tflite` route**) runs the `.tflite` directly and decodes in a
+worklet (`lib/fridgeScan/decode.ts → decodeMediaPipeSsd`), so `release.py`:
 
-- **Native module route (recommended with this model):** `modules/fridge-vision`
-  wraps MediaPipe Tasks Vision (iOS `MediaPipeTasksVision` pod, Android
-  `com.google.mediapipe:tasks-vision`) in a VisionCamera frame-processor plugin.
-  It loads the `.tflite` directly, with no decoding code of your own. OCR lives
-  in the same module (Apple Vision / ML Kit).
-- **`react-native-fast-tflite` route:** you get the raw anchor tensors and have to
-  write anchor decoding + NMS in a worklet yourself. Check this in the Phase 0
-  spike before committing to it.
+- reads the decoding options + anchors with `fridgevision/ssd_decoding.py`,
+- writes them to `detector.decoding` in the labels file and to `fridge-anchors-vN.bin`,
+- ships `detector.labels` in the model's own score-column order.
+
+The app's decoder reproduces MediaPipe Tasks' `ObjectDetector` output (boxes and
+scores within 1%) on MediaPipe's own `efficientdet_lite0` export, and
+`evaluate.py` uses MediaPipe Tasks, so its numbers carry over. Decoding cost scales
+with anchors × classes: `mobilenet_v2_i320` (19,206 anchors) is cheaper per frame
+than `mobilenet_multi_avg_i384` (more anchors), which is worth checking on a
+mid-range Android in the dev build.
 
 **`fridge-labels-vN.json`:**
 
@@ -146,8 +149,16 @@ decision:
   "classesVersion": 1,
   "detector": {
     "modelFile": "fridge-detector-v1.tflite",
-    "labels": ["background", "egg", "milk", ...],   // index = model class index
-    "inputSize": 384, "variant": "fp16", "sha256": "...", "testMap50": 0.63
+    "labels": ["background", "egg", "milk", ...],   // index = model score column (model's own order)
+    "inputSize": 384, "variant": "fp16", "sha256": "...", "testMap50": 0.63,
+    "decoding": {
+      "format": "mediapipe-ssd", "anchorsFile": "fridge-anchors-v1.bin",
+      "numBoxes": 27621, "numClasses": 51, "boxOrder": "yxhw",
+      "xScale": 1, "yScale": 1, "wScale": 1, "hScale": 1,
+      "applyExponentialOnBoxSize": true, "sigmoidScore": false,
+      "scoresOutput": 0, "boxesOutput": 1,
+      "input": { "dtype": "float32", "mean": 127.5, "std": 127.5 }
+    }
   },
   "categories": [{ "id": "dairy_eggs", "display": "Dairy & eggs" }, ...],
   "classes": { "yogurt": { "display": "Yogurt", "category": "dairy_eggs", "detect": "ocr" }, ... },
@@ -158,13 +169,20 @@ decision:
 }
 ```
 
-The app's `lib/fridgeScan/labelDictionary.ts` should read `ocr.keywords` rather
-than hard-code its own list. `fridgevision/ocr_match.py` is the reference
-implementation, and the cases in `tests/test_text_and_ocr.py`
-("Double Cream" → cream, "Milk Chocolate Digestives" → nothing,
-"Philadelphia Cream Cheese" → cream_cheese…) are the test cases to port to the
-TypeScript side. `categories` / `classes` drive the chip labels and the pantry
-grouping (`categories.ts`).
+The app reads everything from this file: `lib/fridgeScan/catalog.ts` imports it,
+`labelDictionary.ts` is a port of `fridgevision/ocr_match.py` driven by
+`ocr.keywords` (it passes every case in `tests/test_text_and_ocr.py`), and
+`ingredients.ts` builds chips and pantry grouping from `classes` / `categories`
+(only emoji are app-side). Until a model is released, the app ships
+`fridge-labels-dev.json` from `export_labels.py`; re-copy it after editing
+`classes.yaml`.
+
+**Switching the app to a release:** run `release.py ... --app-repo <app>`, then in
+the app import `fridge-labels-vN.json` in `lib/fridgeScan/catalog.ts` and set
+`ACTIVE_DETECTOR = releasedDetector(require('…/fridge-detector-vN.tflite'), require('…/fridge-anchors-vN.bin'))`
+in `lib/fridgeScan/modelConfig.ts`. The model and anchors are assets, so a new
+model can ship with an EAS Update (no store build) once the dev build with the
+camera code is out.
 
 ## Tests
 
