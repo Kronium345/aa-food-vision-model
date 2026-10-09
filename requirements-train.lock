@@ -111,7 +111,7 @@ tensorflow-datasets==4.9.10  # via mediapipe-model-maker, tf-models-official
 tensorflow-estimator==2.15.0  # via tensorflow
 tensorflow-hub==0.16.1    # via mediapipe-model-maker, tensorflow-text, tf-models-official, -r requirements-train.txt
 tensorflow-io-gcs-filesystem==0.37.1  # via tensorflow
-tensorflow-metadata==1.21.0  # via tensorflow-datasets
+tensorflow-metadata==1.15.0  # via tensorflow-datasets; 1.16+ pb2 files need protobuf 5 (runtime_version), TF 2.15 needs protobuf 4
 tensorflow-model-optimization==0.7.5  # via mediapipe-model-maker, tf-models-official, -r requirements-train.txt
 tensorflow-text==2.15.0   # via mediapipe-model-maker, tf-models-official, -r requirements-train.txt
 termcolor==3.3.0          # via tensorflow, tensorflow-datasets

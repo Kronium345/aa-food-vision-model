@@ -79,7 +79,7 @@ def main() -> int:
     detections: list[Detection] = []
     timings_ms: list[float] = []
     for img in coco["images"]:
-        image = mp.Image.create_from_file(str(split_dir / "data" / img["file_name"]))
+        image = mp.Image.create_from_file(str(split_dir / "images" / img["file_name"]))
         t0 = time.perf_counter()
         result = detector.detect(image)
         timings_ms.append((time.perf_counter() - t0) * 1000)

@@ -1,7 +1,7 @@
 """Merge every enabled source in datasets.yaml into a versioned training dataset.
 
     python scripts/build_dataset.py --version v1
-    -> data/processed/v1/{train,validation,test}/{data/, labels.json} + stats.json
+    -> data/processed/v1/{train,validation,test}/{images/, labels.json} + stats.json
 """
 
 from __future__ import annotations

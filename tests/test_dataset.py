@@ -78,7 +78,7 @@ def test_build_merges_remaps_and_cleans(tmp_path):
     boxes = {a["category_id"]: a["bbox"] for a in train["annotations"]}
     assert boxes[1] == [90.0, 70.0, 10.0, 10.0]
     assert boxes[2] == [0.0, 0.0, 10.0, 10.0]
-    assert (out / "train" / "data" / train["images"][0]["file_name"]).exists()
+    assert (out / "train" / "images" / train["images"][0]["file_name"]).exists()
 
     test = json.loads((out / "test" / "labels.json").read_text())
     assert len(test["images"]) == 1 and test["annotations"][0]["category_id"] == 2

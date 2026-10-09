@@ -1,7 +1,7 @@
 """Merge COCO-format sources into the layout MediaPipe Model Maker trains on.
 
 Output (per split):
-    <out>/<split>/data/<images>
+    <out>/<split>/images/<images>
     <out>/<split>/labels.json      # COCO; category ids 1..N in classes.yaml order
 
 Every split lists ALL detector categories (even with zero boxes) so the label map
@@ -22,6 +22,8 @@ import yaml
 from fridgevision.classes import ClassCatalog, resolve_label
 
 SPLITS = ("train", "validation", "test")
+# MediaPipe Model Maker's Dataset.from_coco_folder() reads <split>/images + <split>/labels.json.
+IMAGES_DIR = "images"
 MIN_BOX_PX = 2.0
 
 
@@ -175,7 +177,7 @@ def build_dataset(
     per_source: dict[str, dict] = {}
 
     for split in SPLITS:
-        (out_dir / split / "data").mkdir(parents=True, exist_ok=True)
+        (out_dir / split / IMAGES_DIR).mkdir(parents=True, exist_ok=True)
 
     for source in config.sources:
         ann_path, images_dir = _find_coco(source)
@@ -226,7 +228,7 @@ def build_dataset(
                 f"{source.name}/{file_name}", config.validation_fraction
             )
             out_name = f"{source.name}__{digest[:12]}{src_file.suffix.lower()}"
-            dest = out_dir / split / "data" / out_name
+            dest = out_dir / split / IMAGES_DIR / out_name
             if link:
                 try:
                     dest.hardlink_to(src_file)
