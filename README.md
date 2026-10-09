@@ -33,6 +33,7 @@ scripts/
   build_dataset.py        merge sources -> data/processed/vN (Model Maker COCO layout)
   train.py                MediaPipe Model Maker training -> fp32 / fp16 / int8 .tflite
   evaluate.py             mAP@0.5 on real-fridge test photos + Phase 1 exit criteria
+  colab_preflight.py      Colab: repair training venv, migrate old datasets, check imports
   release.py              checks + versioned export: model, labels, anchors (+ optional copy into the app repo)
 notebooks/train_colab.ipynb   GPU training on Colab
 tests/              pytest suite for everything that doesn't need TensorFlow
@@ -80,6 +81,9 @@ python scripts/import_roboflow.py --workspace W --project P --version N --name r
 
 # 2. Merge (refuses non-allowlisted licences; prints per-class counts + gaps)
 python scripts/build_dataset.py --version v1
+
+# 2b. Colab only, before training: repair the training venv + check imports (ends with READY)
+python scripts/colab_preflight.py
 
 # 3. Train (Colab / docker train)
 python scripts/train.py --data data/processed/v1 --model mobilenet_multi_avg_i384 --epochs 60
